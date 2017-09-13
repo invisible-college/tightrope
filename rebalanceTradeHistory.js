@@ -47,7 +47,7 @@ var CandleManager = require('./lib/candleManager')
 
 var Rebalance = require('./rebalance')
 
-var r = new Rebalance()
+var r = new Rebalance(20, 50, 50)
 var candleManager = new CandleManager({maxCandles: 50})
 candleManager.onNewCandle(r.newCandlestick.bind(r))
 

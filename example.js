@@ -3,11 +3,10 @@
 
 var Poloniex = require('./lib/poloniex')
 const configJson = require('config.json')
-config = configJson('./creds-traderbot1.json')
+config = configJson('./creds-traderbot2.json')
 
 // Create a new instance, with optional API key and secret
-poloniex = new Poloniex(
-        config['apiKey'],
+poloniex = new Poloniex( config['apiKey'],
         config['secret'],
         true
         )
@@ -28,8 +27,7 @@ poloniex.getTicker(function(err, data){
 
     console.log(data);
 });
-*/
-
+*/ 
 function Order(price, amount) {
     this.price = price;
     this.amount = amount;
@@ -70,7 +68,8 @@ poloniex.getOrderBook("BTC", "ETH", 50, function(err, data) {
 */
 
 // Private call - requires API key and secret
-poloniex.buy('BTC', 'ETH', 0.01, 1, function(err, data){
+/*
+poloniex.sell('ETH', 'ETC', 100, 1, function(err, data){
     if (err){
         console.log('ERROR', err);
         return;
@@ -78,5 +77,8 @@ poloniex.buy('BTC', 'ETH', 0.01, 1, function(err, data){
     console.log("Bought 1 at 0.01");
     console.log(data);
 });
-
-console.log("Haha");
+*/
+poloniex.myCompleteBalances(function(err, data) {
+    if (err) { console.err(err) }
+    console.log(data['ETC']['available'])
+})
