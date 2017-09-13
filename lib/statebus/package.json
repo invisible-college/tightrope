@@ -1,0 +1,77 @@
+{
+  "_args": [
+    [
+      "statebus@^3.0.11",
+      "/Users/ppham/src/blockchain/poloniex/node_modules/statebusfs"
+    ]
+  ],
+  "_from": "statebus@>=3.0.11 <4.0.0",
+  "_id": "statebus@3.0.18",
+  "_inCache": true,
+  "_installable": true,
+  "_location": "/statebusfs/statebus",
+  "_nodeVersion": "4.2.1",
+  "_npmOperationalInternal": {
+    "host": "packages-6-west.internal.npmjs.com",
+    "tmp": "tmp/statebus-3.0.18.tgz_1455582952583_0.2104088377673179"
+  },
+  "_npmUser": {
+    "email": "toomim@gmail.com",
+    "name": "toomim"
+  },
+  "_npmVersion": "2.14.7",
+  "_phantomChildren": {},
+  "_requested": {
+    "name": "statebus",
+    "raw": "statebus@^3.0.11",
+    "rawSpec": "^3.0.11",
+    "scope": null,
+    "spec": ">=3.0.11 <4.0.0",
+    "type": "range"
+  },
+  "_requiredBy": [
+    "/statebusfs"
+  ],
+  "_resolved": "https://registry.npmjs.org/statebus/-/statebus-3.0.18.tgz",
+  "_shasum": "01414469e15a14ebb8382bc8c84bcf6801cbe330",
+  "_shrinkwrap": null,
+  "_spec": "statebus@^3.0.11",
+  "_where": "/Users/ppham/src/blockchain/poloniex/node_modules/statebusfs",
+  "author": {
+    "name": "Michael Toomim"
+  },
+  "bugs": {
+    "url": "https://github.com/invisible-college/statebus/issues"
+  },
+  "dependencies": {
+    "websocket": "^1.0.22"
+  },
+  "description": "Synchronize state.",
+  "devDependencies": {},
+  "directories": {},
+  "dist": {
+    "shasum": "01414469e15a14ebb8382bc8c84bcf6801cbe330",
+    "tarball": "http://registry.npmjs.org/statebus/-/statebus-3.0.18.tgz"
+  },
+  "gitHead": "bd77fa7279866eab8efcf9014c7ce27564f35c62",
+  "homepage": "https://github.com/invisible-college/statebus",
+  "main": "statebus.js",
+  "maintainers": [
+    {
+      "email": "toomim@gmail.com",
+      "name": "toomim"
+    }
+  ],
+  "name": "statebus",
+  "optionalDependencies": {},
+  "readme": "ERROR: No README data found!",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/invisible-college/statebus.git"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "version": "3.0.18"
+}

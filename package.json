@@ -1,0 +1,25 @@
+{
+  "dependencies": {
+    "async": "^1.5.0",
+    "autobahn": "^0.9.9",
+    "kafka-avro": "^0.6.4",
+    "bluebird": "^3.3.3",
+    "colors": "^1.1.2",
+    "config.json": "0.0.4",
+    "eventemitter3": "^1.1.1",
+    "https-proxy-agent": "^1.0.0",
+    "inherits": "^2.0.1",
+    "lodash": "^3.10.1",
+    "nan": "^2.7.0",
+    "node-rdkafka": "^2.0.0",
+    "nonce": "^1.0.3",
+    "request": "^2.64.0",
+    "retry": "^0.8.0",
+    "sha512": "0.0.1",
+    "sleep": "^3.0.1",
+    "twilio": "^2.9.0",
+    "url-join": "0.0.1",
+    "winston": "^2.1.1",
+    "ws": "^1.0.1"
+  }
+}
