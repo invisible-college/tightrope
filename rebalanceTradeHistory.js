@@ -23,6 +23,7 @@ config = configJson("creds-traderbot1.json")
 apiKey = config['apiKey']
 secret = config['secret']
 
+
 // Create a new instance, with optional API key and secret
 poloniex = new Poloniex(apiKey, secret)
 
@@ -40,17 +41,19 @@ var connection = new autobahn.Connection({
 // Get command-line parameters
 var currencyOut = process.argv[2] || "BTC"
 var currencyIn = process.argv[3] || "ETH"
+var intervalMins = process.argv[4] || 20
 console.log("Out Currency= " + currencyOut)
 console.log(" In Currency= " + currencyIn)
+console.log(" Rebalance Frequency = " + intervalMins + " minutes")
 
 var CandleManager = require('./lib/candleManager')
 
 var Rebalance = require('./rebalance')
 
-var r = new Rebalance(20, 50, 50)
+var r = new Rebalance(intervalMins, 50, 50)
 var candleManager = new CandleManager({maxCandles: 50})
 candleManager.onNewCandle(r.newCandlestick.bind(r))
 
 var Trade = require('./lib/trade')
 
-Trade.loadPastHistory(500, poloniex, candleManager, currencyOut, currencyIn)
+Trade.loadPastHistory(600, poloniex, candleManager, currencyOut, currencyIn)

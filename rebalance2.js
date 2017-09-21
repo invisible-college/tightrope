@@ -17,17 +17,13 @@ if (process.argv.length < 3) {
 }
 
 var configFile = process.argv[2];
-var currencyOut = process.argv[3] || "USDT";
-var currencyIn = process.argv[4] || "ETC";
-var betAmount = process.argv[5] || 0.1;
-var profitThreshold = process.argv[6] || 0.0005;
-var live = process.argv[7] || false; // demo mode by default
+var currencyOut = process.argv[3] || "BTC";
+var currencyIn = process.argv[4] || "ETH";
+var live = process.argv[5] || false; // demo mode by default
 
 console.log("Config File= " + configFile);
 console.log("CurrencyOut= " + currencyOut);
 console.log("CurrencyIn= " + currencyIn);
-console.log("BetAmount= " + betAmount);
-console.log("Profit Threshold= " + profitThreshold);
 
 config = configJson(configFile);
 
@@ -44,7 +40,7 @@ console.log("LIVE= " + live);
 // Currently 0.22% in the worst case
 TAKER_FEE = 0.0025;
 //PROFIT_THRESHOLD = 0.01; // in BTC
-INTERVAL_SECONDS = 60;
+INTERVAL_SECONDS = 300;
 // 0.0001 for BTC_ETH
 // 0.0002 for BTC_EXP
 // 2 for USDT_BTC
@@ -68,6 +64,7 @@ var connection = new autobahn.Connection({
 });
 
 var CandleManager = require('./lib/candleManager');
+var Candlestick = require('./lib/candlestick');
 
 // To match Poloniex's default of 50 SMA for 5-minute periods,
 // we keep 250 SMA for 1-minute periods.
@@ -77,69 +74,36 @@ var candleManager = new CandleManager({
 
 var company = {poloniex: poloniex, connection: connection};
 
-var OrderBook = require('./lib/orderBook');
-var orderBook = new OrderBook(currencyOut, currencyIn, company, candleManager);
-
 // TRADER POLICY
 // All the behavior and parameters specified below are trader
 // behavior, and should be moved into its own module eventually.
 
 var Trade = require('./lib/trade');
 
-orderBook.start();
-
-var orderCallback = function(err, body) {
-  if (err) {
-    console.error(err);
-  } else {
-    console.log(body);
-    this.orderNumber = body['orderNumber'];
-  }
-};
-
-var ETC_balance = 0
-var USDT_balance = 0
+var inBalance = 0
+var outBalance = 0
 
 function setBalances(r) {
-    poloniex.myCompleteBalances(function(err, data) {
+    return poloniex.myCompleteBalances(function(err, data) {
         if (err) { console.error(err); }
-        r.setInBalance(data['ETC']['available']);
-        r.setOutBalance(data['USDT']['available']);
+        r.setInBalance(data[currencyIn]['available']);
+        r.setOutBalance(data[currencyOut]['available']);
     });
-}
-
-var OrderManager = require('./lib/orderManager');
-
-// minDist between keys given in satoshis
-var orderManager = new OrderManager({currencyOut: currencyOut,
-  currencyIn: currencyIn, poloniex: poloniex, minDist: 10000});
-
-function timeoutCallback(order) {
-  // if an order times out, cancel it for now
-  // moving it is more complicated, and not known to be better
-  orderManager.cancel(order);
-  /*
-  if (order.type === 'buy') {
-    orderManager.move(order, candleManager.getMin());
-  } else if (order.type === 'sell') {
-    orderManager.move(order, candleManager.getMax());
-  }
-  */
 }
 
 var Rebalance = require('./rebalance')
 
-// Rebalance every two minutes to start with
-var r = new Rebalance(2, ETC_balance, USDT_balance)
+// Rebalance every 4 5-minute periods (20 minutes) to start with
+var r = new Rebalance(4, inBalance, outBalance)
 r.onBuy(function(price, amount) {
-    poloniex.buy('USDT', 'ETC', price, amount, function(err, data) {
+    poloniex.buy(currencyOut, currencyIn, price, amount, function(err, data) {
         if (err) { console.log('ERROR', err); return; }
         console.log(data);
       });
 });
 
 r.onSell(function(price, amount) {
-    poloniex.sell('USDT', 'ETC', price, amount, function(err, data) {
+    poloniex.sell(currencyOut, currencyIn, price, amount, function(err, data) {
         if (err) { console.log('ERROR', err); return; }
         console.log(data);
     });
@@ -147,13 +111,38 @@ r.onSell(function(price, amount) {
 
 candleManager.onNewCandle(r.newCandlestick.bind(r))
 
+heartbeat = function() {
+    var now = new Date();
+    var seconds = Math.round(now.getTime() / 1000);
+    var CANDLE_PERIOD=INTERVAL_SECONDS;
+    console.log(now);
+    var data = poloniex.getChartData(currencyOut, currencyIn, function(err, data) {
+       if (err) { console.log('ERROR', err); return; }
+       console.log(data);
+       assert(data.length > 0);
+       candle = data[data.length-1];
+       assert(candle.weightedAverage > 0);
+       assert(candle.volume > 0);
+       // Set balances before rebalancing
+       setBalances(r).then(function() {
+           r.newCandlestick(new Candlestick(
+                       candle.weightedAverage,
+                       candle.volume,
+                       priceFormatter, now.getHours()+":"+now.getMinutes()));
+           });
+    }, seconds - 4*INTERVAL_SECONDS, seconds, CANDLE_PERIOD);
+    console.log(JSON.stringify(data));
+}
+
+
 // We only want to start our intervals after getting lastPrice
 // i.e. our first, current trade from the orderBook
-orderBook.execute(function() {
-  setInterval(function() {
+
+// Run the heartbeat once at the very beginning
+heartbeat()
+
+setInterval(heartbeat, INTERVAL_SECONDS*1000);
+
+setInterval(function() {
     console.log(new Date());
-
-    setBalances(r);
-
-  }, INTERVAL_SECONDS * 1000);
-});
+}, 20*1000);
