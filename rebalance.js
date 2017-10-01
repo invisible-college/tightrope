@@ -4,6 +4,10 @@
 
 // Rebalance at this interval of number of candlesticks 
 
+var MAKER_FEE = 0.0025 // 0.25 percent
+var TAKER_FEE = 0.0015 // 0.15 percent
+var MIN_AMT = 0.001
+
 var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
 
   this.inBalance = _inBalance
@@ -32,12 +36,12 @@ var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
 
   this.setOutBalance = function(newOutBalance) {
     console.log("Setting outBalance: " + newOutBalance);
-    this.outBalance = newOutBalance
+    this.outBalance = Number(newOutBalance)
   }
 
   this.setInBalance = function(newInBalance) {
     console.log("Setting inBalance: " + newInBalance);
-    this.inBalance = newInBalance
+    this.inBalance = Number(newInBalance)
   }
 
   this.newCandlestick = (candlestick) => {
@@ -62,7 +66,11 @@ var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
     phase += 1;
     var diff = (this.inBalance*price) - this.outBalance;
     var half = diff / 2.0;
-    var inAmt = half / price;
+    var inAmt = Math.abs(half / price);
+    if (inAmt < MIN_AMT) {
+        console.log(`Amount ${inAmt} smaller than Poloniex minimum ${MIN_AMT}`)
+        return;
+    }
     if (diff > 0) {
         // We have too much IN, sell half the difference to get it OUT
         this.sellCallback(price, inAmt)
