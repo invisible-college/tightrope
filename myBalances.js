@@ -58,14 +58,38 @@ poloniex = new Poloniex( apiKey, secret, live );
 // Do not include the line below once the issue is resolved.
 Poloniex.STRICT_SSL = false;
 
-return poloniex.myCompleteBalances(function(err, data) {
-    if (err) { console.error(err); }
+var prices = {};
+
+poloniex.getTicker(function(err, data) {
+    if (err) { console.error(err); return; }
     for (var key in data) {
-        var available = data[key]['available'];
-        var onOrders = data[key]['onOrders'];
-        var btcValue = data[key]['btcValue'];
-        if (available > 0 || onOrders > 0) {
-            console.log(`${key} available: ${available} onOrders ${onOrders}`);
-        }
+       var last = data[key]['last'];
+       var lowestAsk = data[key]['lowestAsk'];
+       var highestBid = data[key]['highestBid'];
+       var percentChange = data[key]['percentChange'];
+       var baseVolume = data[key]['baseVolume'];
+       prices[key] = Number(last);
     }
 });
+
+var totalTotal = 0;
+poloniex.myCompleteBalances(function(err, data) {
+    if (err) { console.error(err); }
+    for (var key in data) {
+        var available = Number(data[key]['available']);
+        var onOrders = Number(data[key]['onOrders']);
+        var btcValue = data[key]['btcValue'];
+        if (available > 0 || onOrders > 0) {
+            var price = prices["USDT_" + key];
+            console.log(`${key} available: ${available} onOrders ${onOrders}`);
+            console.log(`${price}`);
+            const total = price*(available+onOrders);
+            if (!isNaN(total)) {
+                totalTotal += total;
+            }
+            console.log(`Total: ${total}`);
+        }
+    }
+  console.log(`Total Total ${totalTotal}`);
+});
+

@@ -80,8 +80,8 @@ var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
     } else {
         // We have too much OUT, buy half the difference to get it IN
         this.buyCallback(price, inAmt)
-        this.inBalance -= inAmt;
-        this.outBalance += half;
+        this.inBalance += inAmt;
+        this.outBalance -= half;
         console.log("Bought inAmt " + inAmt);
     }
   };
