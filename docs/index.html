@@ -1,0 +1,33 @@
+<script type="statebus">                       # Scripts with this tag are interpreted by statebus
+
+dom.BODY = ->                                  # Define the webpage with dom.BODY = ->
+  messages = fetch('/chat').messages or []     # Get the current state of the chat!
+  DIV {},
+    for message in messages                    # Print each message in the chat
+      DIV(message)
+    REPLY_BOX()                                # ... and a textbox for writing new messages
+
+dom.REPLY_BOX = ->                             # So let's define the reply box
+  reply = fetch('reply')                       # We fetch the text written so far
+  chat = fetch('/chat')
+
+  DIV {},
+    INPUT
+      type: 'text'
+      value: reply.text                        # Show the current state of the text in the box
+      onChange: (e) =>                         # ...and when it changes:
+        reply.text = e.target.value            #    1) Update the state of the text
+        save(reply)                            #    2) And save the new value to the bus!
+
+    BUTTON
+      onClick: (e) =>
+        chat.messages or= []                   # Initialize the messages to []
+
+        chat.messages.push(reply.text)         # Add our new message to the list!
+        save(chat)
+
+        reply.text = ''                        # Clear the reply box
+        save(reply)
+      'Send'
+
+</script><script src="https://stateb.us/client6.js"></script>
