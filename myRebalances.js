@@ -19,7 +19,8 @@ if (process.argv.length < 3) {
 var configFile = process.argv[2];
 var currencyOut = process.argv[3] || "BTC";
 var currencyIn = process.argv[4] || "ETH";
-var live = process.argv[5] || false; // demo mode by default
+var live = false; // demo mode by default
+var startingInAmount = process.argv[5] || 0.0; // demo mode by default
 
 console.log("Config File= " + configFile);
 console.log("CurrencyOut= " + currencyOut);
@@ -62,34 +63,51 @@ var prices = {};
 
 poloniex.getTicker(function(err, data) {
     if (err) { console.error(err); return; }
-    for (var key in data) {
-       var last = data[key]['last'];
-       var lowestAsk = data[key]['lowestAsk'];
-       var highestBid = data[key]['highestBid'];
-       var percentChange = data[key]['percentChange'];
-       var baseVolume = data[key]['baseVolume'];
+    for (const key in data) {
+       const last = data[key]['last'];
+       const lowestAsk = data[key]['lowestAsk'];
+       const highestBid = data[key]['highestBid'];
+       const percentChange = data[key]['percentChange'];
+       const baseVolume = data[key]['baseVolume'];
        prices[key] = Number(last);
     }
-}).then(function(err, data) { });
+});
 
-var totalTotal = 0;
+function getTotalBalance(data, currency) {
+    console.log(`Currency: ${currency}`);
+    return Number(data[currency]['available']); // + Number(data[currency]['onOrders']);
+}
+
+var usdtTotal = 0;
 poloniex.myCompleteBalances(function(err, data) {
     if (err) { console.error(err); return; }
-    for (var key in data) {
-        var available = Number(data[key]['available']);
-        var onOrders = Number(data[key]['onOrders']);
-        var btcValue = data[key]['btcValue'];
+    for (const key in data) {
+        const available = Number(data[key]['available']);
+        const onOrders = Number(data[key]['onOrders']);
+        const btcValue = data[key]['btcValue'];
         if (available > 0 || onOrders > 0) {
-            var price = (key != "USDT") ? prices["USDT_" + key] : 1.0;
+            const price = prices["USDT" + "_" + key];
             console.log(`${key} available: ${available} onOrders ${onOrders}`);
             console.log(`${price}`);
             const total = price*(available+onOrders);
             if (!isNaN(total)) {
-                totalTotal += total;
+                usdtTotal += total;
             }
             console.log(`Total: ${total}`);
         }
     }
-  console.log(`Total Total ${totalTotal}`);
+    console.log(`Total Total in USDT ${usdtTotal}`);
+    const inPrice = prices[currencyOut + "_" + currencyIn];
+    const outAmount = getTotalBalance(data, currencyOut);
+    const inAmount = getTotalBalance(data, currencyIn);
+    const inOutAmount = outAmount / inPrice;
+    console.log(`${currencyOut} in ${currencyIn} amount: ${inOutAmount}`);
+    const totalInAmount = inOutAmount + inAmount;
+    console.log(`Total In Amount: ${totalInAmount}`);
+    const rebalanceProfit = totalInAmount - startingInAmount;
+    console.log(`Rebalance ${currencyIn} Profit: ${rebalanceProfit}`);
+    const rounded = Math.round(rebalanceProfit * 1000 / startingInAmount) / 10;
+    console.log(`Percent Charge: ${rounded}%`);
+    const profit = rebalanceProfit * prices["USDT_" + currencyIn];
+    console.log(`Rebalance USDT Profit: ${profit}`);
 });
-
