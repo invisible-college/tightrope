@@ -70,7 +70,7 @@ poloniex.getTicker(function(err, data) {
        var baseVolume = data[key]['baseVolume'];
        prices[key] = Number(last);
     }
-});
+}).then(function(err, data) { });
 
 var totalTotal = 0;
 poloniex.myCompleteBalances(function(err, data) {
@@ -80,7 +80,7 @@ poloniex.myCompleteBalances(function(err, data) {
         var onOrders = Number(data[key]['onOrders']);
         var btcValue = data[key]['btcValue'];
         if (available > 0 || onOrders > 0) {
-            var price = prices["USDT_" + key];
+            var price = (key != "USDT") ? prices["USDT_" + key] : 1.0;
             console.log(`${key} available: ${available} onOrders ${onOrders}`);
             console.log(`${price}`);
             const total = price*(available+onOrders);
