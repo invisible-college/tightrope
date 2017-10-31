@@ -4,7 +4,6 @@
 
 // Doesn't use the orderbook at all, so this isn't useful
 // for testing ordering strategies.
-
 // For testing stale / previously fetched histories
 // use parseTradeHistory.
 
@@ -16,8 +15,7 @@ var wsuri = "wss://api.poloniex.com"
 var assert = require('assert')
 
 var Poloniex = require('./lib/poloniex')
-// When using as an NPM module, use `require('poloniex.js')`
-
+// When using as an NPM module, use `require('poloniex.js')` 
 const configJson = require('config.json')
 config = configJson("creds-traderbot1.json")
 apiKey = config['apiKey']
@@ -41,19 +39,42 @@ var connection = new autobahn.Connection({
 // Get command-line parameters
 var currencyOut = process.argv[2] || "BTC"
 var currencyIn = process.argv[3] || "ETH"
-var intervalMins = process.argv[4] || 20
+// Rebalance every 4 candles by default
+var intervalCandles = Number(process.argv[4]) || 4 
+// Candle seconds
+var candleSeconds = Number(process.argv[5]) || 300
+var startOffsetS = Number(process.argv[6]) || 86400 // offset into the past
+var endEpochS = Number(process.argv[7]) || 9999999999
 console.log("Out Currency= " + currencyOut)
 console.log(" In Currency= " + currencyIn)
-console.log(" Rebalance Frequency = " + intervalMins + " minutes")
+console.log(`Rebalance Frequency = ${intervalCandles} candles`)
+console.log(`Candle Period = ${candleSeconds}`)
+console.log(`Start Offset Seconds = ${startOffsetS}`)
+console.log(`End Epoch Seconds = ${endEpochS}`)
 
 var CandleManager = require('./lib/candleManager')
 
 var Rebalance = require('./rebalance')
 
-var r = new Rebalance(intervalMins, 50, 50)
+var r = new Rebalance(intervalCandles, 50, 50)
 var candleManager = new CandleManager({maxCandles: 50})
 candleManager.onNewCandle(r.newCandlestick.bind(r))
 
-var Trade = require('./lib/trade')
+r.setInBalance(50);
+r.setOutBalance(50);
 
-Trade.loadPastHistory(600, poloniex, candleManager, currencyOut, currencyIn)
+poloniex.getChartData(currencyOut, currencyIn, function(err, data) {
+	if (err) { console.log('ERROR', err); return; }
+	console.log(`Retrieved ${data.length} candles`);
+	console.log(JSON.stringify(data));
+	assert(data.length > 0);
+	data.forEach((candle) => {
+        var t = new Date(candle.date);
+		assert(candle.weightedAverage > 0);
+		assert(candle.volume > 0);
+		r.newCandlestick(new Candlestick(
+			   candle.weightedAverage,
+			   candle.volume,
+			   priceFormatter, t.getHours()+":"+t.getMinutes()));
+	   });
+   }, startOffsetS, endEpochS, candleSeconds);

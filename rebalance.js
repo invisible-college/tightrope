@@ -17,8 +17,8 @@ var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
   this.originalPrice = 0
   this.originalInBalance = _inBalance
 
-  var defaultCallback = function(amount) {
-    console.log("Rebalance DEFAULT buy/sell amt : " + amount);
+  var defaultCallback = function(price, amount) {
+    console.log(`Rebalance DEFAULT buy/sell amt ${amount} @ price ${price}`);
   };
 
   this.buyCallback = defaultCallback;
@@ -52,7 +52,10 @@ var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
     console.log("Out Value " + this.outBalance);
     this.total = (this.inBalance*price) + this.outBalance;
     
-    if (this.originalTotal == 0) { this.originalTotal = this.total; }
+    if (this.originalTotal == 0) {
+        this.originalTotal = this.total;
+        console.log(`Original Total ${this.originalTotal}`);
+    }
     if (this.originalPrice == 0) { this.originalPrice = price; }
 
     console.log("Total Value " + this.total);
@@ -81,7 +84,7 @@ var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
         // We have too much OUT, buy half the difference to get it IN
         this.buyCallback(price, inAmt)
         this.inBalance += inAmt;
-        this.outBalance -= half;
+        this.outBalance += half; // half is negative, so this is the right sign
         console.log("Bought inAmt " + inAmt);
     }
   };
