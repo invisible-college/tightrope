@@ -16,6 +16,7 @@ var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
   this.originalTotal = 0
   this.originalPrice = 0
   this.originalInBalance = _inBalance
+  this.originalOutBalance = _outBalance
 
   var defaultCallback = function(price, amount) {
     console.log(`Rebalance DEFAULT buy/sell amt ${amount} @ price ${price}`);
@@ -52,14 +53,10 @@ var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
     console.log("Out Value " + this.outBalance);
     this.total = (this.inBalance*price) + this.outBalance;
     
-    if (this.originalTotal == 0) {
-        this.originalTotal = this.total;
-        console.log(`Original Total ${this.originalTotal}`);
-    }
-    if (this.originalPrice == 0) { this.originalPrice = price; }
-
     console.log("Total Value " + this.total);
-    console.log("Rebalance Profit " + (this.total - this.originalTotal));
+    console.log("IN Balance % Change " + (this.inBalance / this.originalInBalance));
+    console.log("OUT Balance % Change " + (this.outBalance / this.originalOutBalance));
+    console.log("Rebalance Profit (out) " + (this.total - this.originalTotal));
     console.log("Holding Profit " + (this.originalInBalance*(price - this.originalPrice)));
     if (phase % frequency_minutes != 0) {
         phase += 1;
@@ -87,6 +84,15 @@ var Rebalance = function(frequency_minutes, _inBalance, _outBalance) {
         this.outBalance += half; // half is negative, so this is the right sign
         console.log("Bought inAmt " + inAmt);
     }
+    if (this.originalTotal == 0) {
+        console.log("FIRST REBALANCE");
+        this.originalTotal = this.total;
+        this.originalInBalance = this.inBalance;
+        this.originalOutBalance = this.outBalance;
+        console.log(`Original Total ${this.originalTotal}`);
+    }
+    if (this.originalPrice == 0) { this.originalPrice = price; }
+
   };
 
 };
